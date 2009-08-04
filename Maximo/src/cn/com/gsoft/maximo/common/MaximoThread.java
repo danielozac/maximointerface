@@ -110,6 +110,7 @@ public class MaximoThread extends Thread{
 						Logger.log(e.toString());
 						setSendFlag(doc, "-1", null, null, e.toString());
 					}
+					db.recycle();
 				}
 			}
 			else{
@@ -147,8 +148,8 @@ public class MaximoThread extends Thread{
 	public static void main(String[] args){
 		Logger.ini();
 		MaximoThread a = new MaximoThread();
-		a.getFirstDocumentToTarget();
-		//a.start();
+		//a.getFirstDocumentToTarget();
+		a.start();
 	}
 	
 	public void run(){
