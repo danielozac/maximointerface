@@ -33,23 +33,24 @@ public class DominoOaDoc {
 	private Session session;
 	private MaximoDoc mdoc;	
 	private TargetServer ts;
-	private Document doc;
+	private Document olddoc;
 	
-	public DominoOaDoc(Session session, MaximoDoc mdoc, TargetServer ts, Document doc){
+	public DominoOaDoc(Session session, MaximoDoc mdoc, TargetServer ts, Document olddoc){
 		this.session = session;
 		this.mdoc = mdoc;
 		this.ts = ts;
-		this.doc = doc;
+		this.olddoc = olddoc;
 	}
 	
 	public String createTargetServerDoc(){
-		Document doc = this.doc;
+		Database db;
+		Document olddoc = this.olddoc;
 		String backinfo = "";
-		if(ts.getDbname().equals("")){
-			backinfo = ts.getSiteid()+" "+ts.getOrgid()+" 远程函件数据库名未设置";
-			return backinfo;
-		}			
 		try{
+			db = session.getDatabase(ts.getServername(), ts.getDbname());
+			Document doc = db.createDocument();
+			doc = olddoc.copyToDatabase(db);
+
 			//获得并设置附件
 			Vector items = doc.getItems();
 			for (int j=0; j<items.size(); j++) {
@@ -63,7 +64,9 @@ public class DominoOaDoc {
 			Vector v = session.evaluate("@AttachmentNames", doc);
 			Item AttLog = doc.replaceItemValue("AttLog", null);
 			for(int i=0;i<v.size();i++){
-				AttLog.appendToTextList(attLogInfo+(String)v.get(i));
+				String attname = (String)v.get(i);
+				if(!attname.equals(""))
+					AttLog.appendToTextList(attLogInfo+attname);
 			}
 				
 			doc.replaceItemValue("ticketid", mdoc.getTicketid());
@@ -97,7 +100,8 @@ public class DominoOaDoc {
 			doc.replaceItemValue("actualstart", mdoc.getActualstart());
 			doc.replaceItemValue("actualfinish", mdoc.getActualfinish());
 			
-			doc.send(ts.getDbname());
+			doc.save();
+			db.recycle();
 		}
 		catch(NotesException e){
 			backinfo = e.toString();
