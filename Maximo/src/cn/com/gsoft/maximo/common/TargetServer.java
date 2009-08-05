@@ -32,11 +32,11 @@ import lotus.domino.View;
  */
 public class TargetServer {
 
-	private String siteid;
-	private String orgid;
-	private String servername;
-	private String httpport;
-	private String dbname;
+	private String siteid;		//所在地点
+	private String orgid;		//组织机构
+	private String servername;	//地市FOA服务器地址
+	private String httpport;	//http端口
+	private String dbname;		//地市FOA应用库路径
 	
 	public TargetServer(){
 		this.siteid = "";
@@ -86,13 +86,14 @@ public class TargetServer {
 		return this.dbname;
 	}
 	
+	//根据Maximo传过来的siteid和orgid组成key查询目标服务器配置信息
 	public TargetServer getServerNameByKey(Session session){
 		Vector key = new Vector();
 		key.addElement(this.siteid);
 		key.addElement(this.orgid);
 		try{
-			Database db = session.getDatabase("", "mail/maximo.nsf");
-			View vw = db.getView("serverName");
+			Database db = session.getDatabase("", "mail/maximo.nsf");	//获取邮件暂存函件库
+			View vw = db.getView("serverName");		//获取配置信息视图
 			Document doc = vw.getDocumentByKey(key, true);
 			if(doc!=null){
 				this.setServername(doc.getItemValueString("serverName"));
