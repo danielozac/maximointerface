@@ -24,7 +24,7 @@ package cn.com.gsoft.maximo.common;
  */
 public class Logger {
 	
-	public static boolean logswitch;
+	public static boolean logswitch;	//日志开关
 	
 	public static void ini(){
 		String islog = Config.getAttribute("IsLog").toLowerCase();

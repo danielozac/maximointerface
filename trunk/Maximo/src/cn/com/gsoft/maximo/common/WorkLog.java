@@ -24,14 +24,14 @@ package cn.com.gsoft.maximo.common;
  */
 public class WorkLog {
 
-	private String worklogid;
-	private String logclass;
-	private String createby;
-	private String createdate;
-	private String logtype;
-	private String clientviewable;
-	private String description;
-	private String longdescription;
+	private String worklogid;	//日志id
+	private String logclass;	//事件工单类型
+	private String createby;	//创建人
+	private String createdate;	//创建日期
+	private String logtype;		//日志类型
+	private String clientviewable;	//是否可见0|1
+	private String description;	//描述
+	private String longdescription;//详细描述
 	
 	public WorkLog(){
 		

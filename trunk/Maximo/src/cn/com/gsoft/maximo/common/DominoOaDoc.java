@@ -30,10 +30,10 @@ import lotus.domino.*;
  */
 public class DominoOaDoc {
 
-	private Session session;
-	private MaximoDoc mdoc;	
-	private TargetServer ts;
-	private Document olddoc;
+	private Session session;	//访问地市Domino会话，可由MaximoThread获取传入
+	private MaximoDoc mdoc;		//分析XML后的Maximo邮件传过来的类实例
+	private TargetServer ts;	//目标服务器配置信息文档
+	private Document olddoc;	//MaximoThread获得的需要解析的函件（用于更方便地获取附件）
 	
 	public DominoOaDoc(Session session, MaximoDoc mdoc, TargetServer ts, Document olddoc){
 		this.session = session;
@@ -47,11 +47,11 @@ public class DominoOaDoc {
 		Document olddoc = this.olddoc;
 		String backinfo = "";
 		try{
-			db = session.getDatabase(ts.getServername(), ts.getDbname());
-			Document doc = db.createDocument();
-			doc = olddoc.copyToDatabase(db);
+			db = session.getDatabase(ts.getServername(), ts.getDbname());	//目标服务器上的FOA应用库
+			Document doc = db.createDocument();	//目标应用库新建流转文档
+			doc = olddoc.copyToDatabase(db);	//将附件拷贝到新建文档
 
-			//获得并设置附件
+			//获得并设置附件，把其余域删除
 			Vector items = doc.getItems();
 			for (int j=0; j<items.size(); j++) {
 				Item item = (Item)items.elementAt(j);
@@ -62,7 +62,7 @@ public class DominoOaDoc {
 			
 			String attLogInfo = mdoc.getCreateby()+"|"+getTime()+"|U|";
 			Vector v = session.evaluate("@AttachmentNames", doc);
-			Item AttLog = doc.replaceItemValue("AttLog", null);
+			Item AttLog = doc.replaceItemValue("AttLog", null);	//用于匹配FOA3.0的附件操作
 			for(int i=0;i<v.size();i++){
 				String attname = (String)v.get(i);
 				if(!attname.equals(""))
@@ -101,7 +101,7 @@ public class DominoOaDoc {
 			doc.replaceItemValue("actualfinish", mdoc.getActualfinish());
 			
 			doc.save();
-			db.recycle();
+			db.recycle();	//释放数据库
 		}
 		catch(NotesException e){
 			backinfo = e.toString();

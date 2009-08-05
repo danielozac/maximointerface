@@ -25,7 +25,7 @@ import lotus.domino.*;
 /**
  * MaximoThread.java
  * @author Wan Fei
- *
+ * 遍历函件库数据的线程类
  */
 public class MaximoThread extends Thread{
 
@@ -36,7 +36,7 @@ public class MaximoThread extends Thread{
     private Session session;
 	
 	public MaximoThread(){
-		this.server = Config.getAttribute("Mailip");
+		this.server = Config.getAttribute("Mailip");	//函件库所在服务器
 		this.user = Config.getAttribute("Username");
 		this.pass = Config.getAttribute("Password");
 		this.TIMER_INTEVAL = Long.parseLong(Config.getAttribute("Timer_Inteval"));

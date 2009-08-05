@@ -35,7 +35,8 @@ import org.xml.sax.SAXException;
 /**
  * WorkLogList.java
  * @author Wan Fei
- *
+ * 访问WebService获取日志
+ * 客户端使用AXIS方法
  */
 public class WorkLogList {
 
@@ -48,16 +49,16 @@ public class WorkLogList {
 		try {
 			Call call = (Call)service.createCall();
 			call.setTargetEndpointAddress(new java.net.URL(endpoint));
-			call.setOperationName("getWorklogByTicketId");
+			call.setOperationName("getWorklogByTicketId");	//通过ticketid获取日志
 			String strlogs = (String) call.invoke(new Object[] {ticketid});
 
-        	strlogs = strlogs.replaceAll("\r\n", "");
+        	strlogs = strlogs.replaceAll("\r\n", "");	//去除字符串换行空格等
 			Document xmldoc = null;
 			StringReader sr = new StringReader(strlogs);
 			InputSource iSrc = new InputSource(sr);
 			DOMParser parser = new DOMParser();
 			try{
-				parser.parse(iSrc);
+				parser.parse(iSrc);	//将字符串解析为XML对象
 				xmldoc = parser.getDocument();
 				Element docRoot = xmldoc.getDocumentElement();
 				NodeList worklogs = docRoot.getElementsByTagName("worklog");

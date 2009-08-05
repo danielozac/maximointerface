@@ -25,7 +25,7 @@ import cn.com.gsoft.maximo.common.*;
 /**
  * MaximoServlet.java
  * @author Wan Fei
- *
+ * 启动整个多线程程序的servlet
  */
 public class MaximoServlet extends HttpServlet{
 	

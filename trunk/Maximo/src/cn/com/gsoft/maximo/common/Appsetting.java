@@ -27,7 +27,7 @@ public class Appsetting {
 	public static boolean RUNNING = true;
 	
 	public static boolean getRunning(){
-		return RUNNING;
+		return RUNNING;		//当发生严重错误时停止线程启动
 	}
 	
 	public static void setRunninng(boolean running){
