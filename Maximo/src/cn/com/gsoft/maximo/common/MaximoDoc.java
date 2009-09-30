@@ -17,6 +17,7 @@
 
 package cn.com.gsoft.maximo.common;
 import java.util.List;
+import java.util.Vector;
 
 import org.w3c.dom.*;
 
@@ -28,6 +29,8 @@ import org.w3c.dom.*;
 public class MaximoDoc {
 
 	private String ticketid;				//事件工单号
+	private String extsiteid;				//外部处理单位
+	private String extorgid;				//外部处理组织名
 	//用户信息userinfo
 	private String createby;				//创建人
 	private String reportedbyid;						//报告人
@@ -46,6 +49,7 @@ public class MaximoDoc {
 	//关联信息associateinfo
 	private String assetdescription;						//关联配置项
 	private String locationdescription;						//配置项位置
+	private String classstructure;
 	private String siteid;						//所在地点
 	private String orgid;						//组织机构
 	//日期date
@@ -57,14 +61,21 @@ public class MaximoDoc {
 	private String actualcontactdate;						//实际联系时间
 	private String actualstart;						//实际开始时间
 	private String actualfinish;						//实际结束时间
+	//分类
+	private String category;
 	//日志
 	private List worklogs;
+	private Vector logvector;
 	
 	public MaximoDoc(Document doc){
 		
 		Element docRoot = doc.getDocumentElement();
 		NodeList nlticketid = docRoot.getElementsByTagName("ticketid");
 		Element elticketid = (Element)nlticketid.item(0);
+		NodeList nlextsiteid = docRoot.getElementsByTagName("extsiteid");
+		Element elextsiteid = (Element)nlextsiteid.item(0);
+		NodeList nlextorgid = docRoot.getElementsByTagName("extorgid");
+		Element elextorgid = (Element)nlextorgid.item(0);
 		NodeList nluserinfo = docRoot.getElementsByTagName("userinfo");
 		Element eluserinfo = (Element)nluserinfo.item(0);
 		NodeList nlextinfo = docRoot.getElementsByTagName("extinfo");
@@ -78,7 +89,8 @@ public class MaximoDoc {
 
 		try{
 			this.ticketid = getElementValue(elticketid);
-			
+			this.extsiteid = getElementValue(elextsiteid);
+			this.extorgid = getElementValue(elextorgid);
 			this.createby = getChildNodeValue(eluserinfo, "createby");
 			this.reportedbyid = getChildNodeValue(eluserinfo, "reportedbyid");
 			this.reportedphone = getChildNodeValue(eluserinfo, "reportedphone");
@@ -96,6 +108,7 @@ public class MaximoDoc {
 			
 			this.assetdescription = getChildNodeValue(elassociateinfo, "assetdescription");
 			this.locationdescription = getChildNodeValue(elassociateinfo, "locationdescription");
+			this.classstructure = getChildNodeValue(elassociateinfo, "classstructure");
 			this.siteid = getChildNodeValue(elassociateinfo, "siteid");
 			this.orgid = getChildNodeValue(elassociateinfo, "orgid");
 			
@@ -107,8 +120,11 @@ public class MaximoDoc {
 			this.actualcontactdate = getChildNodeValue(eldate, "actualcontactdate");
 			this.actualstart = getChildNodeValue(eldate, "actualstart");
 			this.actualfinish = getChildNodeValue(eldate, "actualfinish");
+			MaximoDocCategory mdoc_cate = new MaximoDocCategory(this.ticketid);
+			this.category = mdoc_cate.getCategory();
 			WorkLogList wl = new WorkLogList(this.ticketid);
 			this.setWorkLogs(wl.getLoglist());
+			this.setLogvector(wl.getLogVector());
 
 		}catch(Exception e){
 			Logger.log(e.toString());
@@ -117,6 +133,14 @@ public class MaximoDoc {
 	
 	public String getTicketid(){
 		return this.ticketid;
+	}
+	
+	public String getExtsiteid(){
+		return this.extsiteid;
+	}
+	
+	public String getExtorgid(){
+		return this.extorgid;
 	}
 	
 	public String getCreateby(){
@@ -170,6 +194,10 @@ public class MaximoDoc {
 	public String getAssetdescription(){
 		return this.assetdescription;
 	}
+	
+	public String getClassstructure(){
+		return this.classstructure;
+	}
 
 	public String getLocationdescription(){
 		return this.locationdescription;
@@ -215,12 +243,24 @@ public class MaximoDoc {
 		return this.actualfinish;
 	}
 	
+	public String getCategory(){
+		return this.category;
+	}
+	
 	public List getWorkLogs(){
 		return this.worklogs;
 	}
 	
+	public Vector getLogvector(){
+		return this.logvector;
+	}
+	
 	public void setWorkLogs(List worklogs){
 		this.worklogs = worklogs;
+	}
+	
+	public void setLogvector(Vector logvector){
+		this.logvector = logvector;
 	}
 	
 	private String getChildNodeValue(Element node, String childtag) throws Exception{
