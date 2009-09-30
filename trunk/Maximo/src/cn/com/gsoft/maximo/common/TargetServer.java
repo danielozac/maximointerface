@@ -32,54 +32,54 @@ import lotus.domino.View;
  */
 public class TargetServer {
 
-	private String siteid;		//所在地点
-	private String orgid;		//组织机构
+	private String extsiteid;		//所在地点
+	private String extorgid;		//组织机构
 	private String servername;	//地市FOA服务器地址
-	private String httpport;	//http端口
+	private String diiopport;	//http端口
 	private String dbname;		//地市FOA应用库路径
 	
 	public TargetServer(){
-		this.siteid = "";
-		this.orgid = "";
+		this.extsiteid = "";
+		this.extorgid = "";
 		this.servername = "127.0.0.1";
 		this.dbname = "";
-		this.httpport = "80";
+		this.diiopport = "63148";
 	}
 	
-	public void setSiteid(String siteid){
-		this.siteid = siteid;
+	public void setExtsiteid(String extsiteid){
+		this.extsiteid = extsiteid;
 	}
 	
-	public void setOrgid(String orgid){
-		this.orgid = orgid;
+	public void setExtorgid(String extorgid){
+		this.extorgid = extorgid;
 	}
 	
 	public void setServername(String servername){
 		this.servername = servername;
 	}
 	
-	public void setHttpport(String httpport){
-		this.httpport = httpport;
+	public void setDiiopport(String diiopport){
+		this.diiopport = diiopport;
 	}
 	
 	public void setDbname(String dbname){
 		this.dbname = dbname;
 	}
 	
-	public String getSiteid(){
-		return this.siteid;
+	public String getExtsiteid(){
+		return this.extsiteid;
 	}
 	
-	public String getOrgid(){
-		return this.orgid;
+	public String getExtorgid(){
+		return this.extorgid;
 	}
 	
 	public String getServername(){
 		return this.servername;
 	}
 	
-	public String getHttpport(){
-		return this.httpport;
+	public String getDiiopport(){
+		return this.diiopport;
 	}
 	
 	public String getDbname(){
@@ -89,8 +89,8 @@ public class TargetServer {
 	//根据Maximo传过来的siteid和orgid组成key查询目标服务器配置信息
 	public TargetServer getServerNameByKey(Session session){
 		Vector key = new Vector();
-		key.addElement(this.siteid);
-		key.addElement(this.orgid);
+		key.addElement(this.extorgid);
+		key.addElement(this.extsiteid);
 		try{
 			Database db = session.getDatabase("", "mail/maximo.nsf");	//获取邮件暂存函件库
 			View vw = db.getView("serverName");		//获取配置信息视图
@@ -98,10 +98,10 @@ public class TargetServer {
 			if(doc!=null){
 				this.setServername(doc.getItemValueString("serverName"));
 				this.setDbname(doc.getItemValueString("dbName"));
-				this.setHttpport(doc.getItemValueString("httpPort"));
+				this.setDiiopport(doc.getItemValueString("diiopPort"));
 			}
 			else{
-				Logger.log("不能找到目标地址 "+this.siteid+" "+this.orgid+" 的服务器名");
+				Logger.log("不能找到目标地址 "+this.extsiteid+" "+this.extorgid+" 的服务器名");
 			}
 		}catch(NotesException e){
 			Logger.log(e.toString());

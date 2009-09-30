@@ -70,6 +70,8 @@ public class DominoOaDoc {
 			}
 				
 			doc.replaceItemValue("ticketid", mdoc.getTicketid());
+			doc.replaceItemValue("extsiteid", mdoc.getExtsiteid());
+			doc.replaceItemValue("extorgid", mdoc.getExtorgid());
 			//用户信息userinfo
 			doc.replaceItemValue("createby", mdoc.getCreateby());
 			doc.replaceItemValue("reportedbyid", mdoc.getReportedbyid());
@@ -88,6 +90,7 @@ public class DominoOaDoc {
 			//关联信息associateinfo
 			doc.replaceItemValue("assetdescription", mdoc.getAssetdescription());
 			doc.replaceItemValue("locationdescription", mdoc.getLocationdescription());
+			doc.replaceItemValue("classstructure", mdoc.getClassstructure());
 			doc.replaceItemValue("siteid", mdoc.getSiteid());
 			doc.replaceItemValue("orgid", mdoc.getOrgid());			
 			//日期date
@@ -99,20 +102,95 @@ public class DominoOaDoc {
 			doc.replaceItemValue("actualcontactdate", mdoc.getActualcontactdate());
 			doc.replaceItemValue("actualstart", mdoc.getActualstart());
 			doc.replaceItemValue("actualfinish", mdoc.getActualfinish());
+			//应用配置
+			Vector receiver = getDefaultReceiver(ts);
+			if(receiver.size()<1){
+				return "未设置默认接收人";
+			}
+			doc.replaceItemValue("category", mdoc.getCategory());
+			doc.replaceItemValue("form", "mainform");
+			doc.replaceItemValue("Author", receiver);
+			doc.replaceItemValue("Unid", doc.getUniversalID());
+			doc.replaceItemValue("ArriveTime", getArriveTime(receiver));
+			doc.replaceItemValue("NotionsList0", mdoc.getLogvector());
 			
 			doc.save();
 			db.recycle();	//释放数据库
+			
+			DominoOaAlert alert = new DominoOaAlert(session,ts,doc);
+			alert.sendAlert();
 		}
 		catch(NotesException e){
 			backinfo = e.toString();
+			Logger.log(backinfo);
+			setSendFlag(olddoc, "-1", mdoc.getTicketid(), mdoc.getExtsiteid(), mdoc.getExtorgid(), backinfo);
 		}
 		return backinfo;
 	}
 	
 	public String getTime(){
-        SimpleDateFormat formatter = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date now = new Date();
         String strTime = formatter.format(now);
         return strTime;
     }
+	
+	public Vector getArriveTime(Vector receiver){
+		Vector arrivetime = new Vector();
+		String timenow = getTime();
+		for(int i=0;i<receiver.size();i++){
+			String r = (String)receiver.get(i);
+			String a = r + "#" + timenow;
+			arrivetime.add(a);
+		}
+		return arrivetime;
+	}
+	
+	public Vector getDefaultReceiver(TargetServer ts){//获取流转应用库中默认接收人
+		Vector receiver = new Vector();
+		String appdbname = ts.getDbname();
+		String engdbname = appdbname.replaceFirst(".nsf", "_eng.nsf");
+		try{
+			Database engdb = session.getDatabase(ts.getServername(), engdbname);
+			View all = engdb.getView("Deliver");
+			String category = this.mdoc.getClassstructure().toUpperCase();
+			category = category.replaceAll(",", "，");
+			category = category.replaceAll(" ", "");
+			Document doc = all.getDocumentByKey(category);
+			if(doc!=null){
+				receiver = doc.getItemValue("receiver");
+			}else{
+				doc = all.getDocumentByKey("默认");
+				receiver = doc.getItemValue("receiver");
+			}
+			engdb.recycle();
+		}
+		catch(NotesException e){
+			Logger.log(e.toString());
+			setSendFlag(this.olddoc, "-1", this.mdoc.getTicketid(), this.mdoc.getExtsiteid(), this.mdoc.getExtorgid(), e.toString());
+		}
+		return receiver;
+	}
+	
+	public void setSendFlag(Document doc, String flag, String ticketid, String siteid, String orgid, String error){
+		try{
+			doc.replaceItemValue("SENDFLAG", flag);
+			if(!ticketid.equals("")){
+				doc.replaceItemValue("ticketid", ticketid);				
+			}
+			if(!siteid.equals("")){
+				doc.replaceItemValue("siteid", siteid);
+			}
+			if(!orgid.equals("")){
+				doc.replaceItemValue("orgid", orgid);
+			}
+			if(error!=null){
+				doc.replaceItemValue("error", error);
+			}
+			doc.save();
+		}
+		catch(NotesException e){
+			Logger.log(e.toString());
+		}		
+	}
 }

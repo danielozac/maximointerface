@@ -56,7 +56,7 @@ public class MaximoThread extends Thread{
 			return this.session;
 		else{
 			try{
-				this.session = NotesFactory.createSession(this.server, this.user, this.pass);
+				this.session = NotesFactory.createSession(this.server+":63148", this.user, this.pass);
 				Logger.log("Maximo接口登录服务器 " + this.server + " 成功！");				
 	        }catch(NotesException e){
 	            Logger.log("Maximo接口登录服务器 " + this.server + " 失败！");
@@ -78,38 +78,13 @@ public class MaximoThread extends Thread{
 					String xml = doc.getItemValueString("Body");
 					xml = xml.replaceAll("\r\n", "");					
 					xml = xml.toLowerCase();
-					xml = xml.substring(0, xml.indexOf("</incident>")+11);
-					org.w3c.dom.Document xmldoc = null;
-					StringReader sr = new StringReader(xml);
-					InputSource iSrc = new InputSource(sr);
-					DOMParser parser = new DOMParser();
-					try{
-						parser.parse(iSrc);
-						xmldoc = parser.getDocument();
-						MaximoDoc mdoc = new MaximoDoc(xmldoc);
-						TargetServer ts = new TargetServer();
-						ts.setSiteid(mdoc.getSiteid());
-						ts.setOrgid(mdoc.getOrgid());
-						ts = ts.getServerNameByKey(session);
-						DominoOaDoc oadoc = new DominoOaDoc(session, mdoc, ts, doc);						
-						String backinfo = oadoc.createTargetServerDoc();
-						if(!backinfo.equals("")){							
-							Logger.log("工单："+mdoc.getTicketid()+" 到 "+ts.getSiteid()+" "+ts.getOrgid()+" 发送失败！");
-							Logger.log(backinfo);
-							setSendFlag(doc, "-1", mdoc, ts, backinfo);
-						}else{
-							setSendFlag(doc, "1", mdoc, ts, null);
-							Logger.log("工单："+mdoc.getTicketid()+" 到 "+ts.getSiteid()+" "+ts.getOrgid()+" 发送成功！");
-						}
-					}
-					catch(IOException e){
-						Logger.log(e.toString());
-						setSendFlag(doc, "-1", null, null, e.toString());
-					}
-					catch(SAXException e){
-						Logger.log(e.toString());
-						setSendFlag(doc, "-1", null, null, e.toString());
-					}
+					if(xml.indexOf("incident")!=-1){
+						xml = xml.substring(0, xml.indexOf("</incident>")+11);
+						createDominoOaDoc(doc, xml);
+					}else if(xml.indexOf("worklogs")!=-1){
+						xml = xml.substring(0, xml.indexOf("</worklogs>")+11);
+						createMaximoLogDoc(doc, xml);
+					}					
 					db.recycle();
 				}
 			}
@@ -122,25 +97,87 @@ public class MaximoThread extends Thread{
 		}	
 	}
 	
-	public void createMaximoDoc(){
-		
+	public void createDominoOaDoc(Document doc, String xml){
+		org.w3c.dom.Document xmldoc = null;
+		StringReader sr = new StringReader(xml);
+		InputSource iSrc = new InputSource(sr);
+		DOMParser parser = new DOMParser();
+		try{
+			parser.parse(iSrc);
+			xmldoc = parser.getDocument();
+			MaximoDoc mdoc = new MaximoDoc(xmldoc);
+			TargetServer ts = new TargetServer();
+			ts.setExtsiteid(mdoc.getExtsiteid());
+			ts.setExtorgid(mdoc.getExtorgid());
+			ts = ts.getServerNameByKey(session);
+			DominoOaDoc oadoc = new DominoOaDoc(session, mdoc, ts, doc);						
+			String backinfo = oadoc.createTargetServerDoc();
+			if(!backinfo.equals("")){							
+				Logger.log("工单："+mdoc.getTicketid()+" 到 "+ts.getExtsiteid()+" "+ts.getExtorgid()+" 发送失败！！！");
+				Logger.log(backinfo);
+				setSendFlag(doc, "-1", mdoc.getTicketid(), ts.getExtsiteid(), ts.getExtorgid(), backinfo);
+			}else{
+				setSendFlag(doc, "1", mdoc.getTicketid(), ts.getExtsiteid(), ts.getExtorgid(), null);
+				Logger.log("工单："+mdoc.getTicketid()+" 到 "+ts.getExtsiteid()+" "+ts.getExtorgid()+" 发送成功！");
+			}
+		}
+		catch(IOException e){
+			Logger.log(e.toString());
+			setSendFlag(doc, "-1", "", "", "", e.toString());
+		}
+		catch(SAXException e){
+			Logger.log(e.toString());
+			setSendFlag(doc, "-1", "", "", "", e.toString());
+		}
 	}
 	
-	public void setSendFlag(Document doc, String flag, MaximoDoc mdoc, TargetServer ts, String error){
+	public void createMaximoLogDoc(Document doc, String xml){
+		org.w3c.dom.Document xmldoc = null;
+		StringReader sr = new StringReader(xml);
+		InputSource iSrc = new InputSource(sr);
+		DOMParser parser = new DOMParser();
+		try{
+			parser.parse(iSrc);
+			xmldoc = parser.getDocument();
+			ReturnLogDoc logdoc = new ReturnLogDoc(xmldoc, xml);
+			String backinfo = logdoc.returnLogs();
+			if(!backinfo.equals("")){							
+				Logger.log("工单日志："+logdoc.getTicketid()+" 从 "+logdoc.getSiteid()+" "+logdoc.getOrgid()+" 回写失败！！！");
+				Logger.log(backinfo);
+				setSendFlag(doc, "-1", logdoc.getTicketid(), logdoc.getSiteid(), logdoc.getOrgid(), backinfo);
+			}else{
+				setSendFlag(doc, "1", logdoc.getTicketid(), logdoc.getSiteid(), logdoc.getOrgid(), null);
+				Logger.log("工单日志："+logdoc.getTicketid()+" 从 "+logdoc.getSiteid()+" "+logdoc.getOrgid()+" 回写成功！");
+			}
+		}
+		catch(IOException e){
+			Logger.log(e.toString());
+			setSendFlag(doc, "-1",  "", "", "", e.toString());
+		}
+		catch(SAXException e){
+			Logger.log(e.toString());
+			setSendFlag(doc, "-1",  "", "", "", e.toString());
+		}
+	}
+	
+	public void setSendFlag(Document doc, String flag, String ticketid, String siteid, String orgid, String error){
 		try{
 			doc.replaceItemValue("SENDFLAG", flag);
-			if(mdoc!=null){
-				doc.replaceItemValue("ticketid", mdoc.getTicketid());				
+			if(!ticketid.equals("")){
+				doc.replaceItemValue("ticketid", ticketid);				
 			}
-			if(ts!=null){
-				doc.replaceItemValue("siteid", ts.getSiteid());
-				doc.replaceItemValue("orgid", ts.getOrgid());
+			if(!siteid.equals("")){
+				doc.replaceItemValue("siteid", siteid);
+			}
+			if(!orgid.equals("")){
+				doc.replaceItemValue("orgid", orgid);
 			}
 			if(error!=null){
 				doc.replaceItemValue("error", error);
 			}
 			doc.save();
-		}catch(NotesException e){
+		}
+		catch(NotesException e){
 			Logger.log(e.toString());
 		}		
 	}
@@ -148,8 +185,8 @@ public class MaximoThread extends Thread{
 	public static void main(String[] args){
 		Logger.ini();
 		MaximoThread a = new MaximoThread();
-		//a.getFirstDocumentToTarget();
-		a.start();
+		a.getFirstDocumentToTarget();
+		//a.start();
 	}
 	
 	public void run(){

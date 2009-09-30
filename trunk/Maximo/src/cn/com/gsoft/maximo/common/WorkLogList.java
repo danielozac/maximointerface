@@ -20,6 +20,7 @@ package cn.com.gsoft.maximo.common;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
@@ -41,6 +42,7 @@ import org.xml.sax.SAXException;
 public class WorkLogList {
 
 	private List loglist = new ArrayList();
+	private Vector logvector = new Vector();
 	
 	public WorkLogList(String ticketid){
 		
@@ -74,6 +76,7 @@ public class WorkLogList {
 					log.setDescription(getChildNodeValue(worklog, "description"));
 					log.setLongdescription(getChildNodeValue(worklog, "longdescription"));
 					this.loglist.add(log);
+					this.logvector.add(log.toString());
 				}
 			}
 			catch(IOException e){
@@ -81,8 +84,7 @@ public class WorkLogList {
 			}
 			catch(SAXException e){
 				Logger.log(e.toString());
-			}
-
+			}			
 		}
 		catch(Exception e){
 			Logger.log(e.toString());
@@ -91,6 +93,10 @@ public class WorkLogList {
 	
 	public List getLoglist(){
 		return this.loglist;
+	}
+	
+	public Vector getLogVector(){		
+		return this.logvector;
 	}
 	
 	private String getChildNodeValue(Element node, String childtag) throws Exception{

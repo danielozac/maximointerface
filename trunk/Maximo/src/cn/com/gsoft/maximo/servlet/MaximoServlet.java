@@ -31,14 +31,14 @@ public class MaximoServlet extends HttpServlet{
 	
 	private static final long serialVersionUID = 1L;
 	
-	public void init(ServletConfig config) throws ServletException {		
+	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 		Logger.ini();
-		MaximoThread thread = new MaximoThread();
+		MaximoThread thread = new MaximoThread();		
 		thread.start();
 	}
 	
 	public void destroy(){
-
+		Appsetting.setRunninng(false);
 	}
 }

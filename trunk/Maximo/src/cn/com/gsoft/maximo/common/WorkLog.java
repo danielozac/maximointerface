@@ -101,4 +101,20 @@ public class WorkLog {
 		this.longdescription = longdescription;
 	}
 	
+	public String toString(){
+		String html = "";
+		html = html + "<table cellpadding=0 cellspacing=0 style='border-collapse:collapse' width=90%>";
+		html = html + "<tr>";
+		html = html + "<td width=15%>创建人</td><td width=35%>"+this.getCreateby()+"</td><td width=15%>创建时间</td><td width=35%>"+this.getCreatedate()+"</td>";
+		html = html + "</tr>";
+		html = html + "<tr>";
+		html = html + "<td width=15%>描述</td><td colspan=3 width=85%>"+this.getDescription()+"</td>";
+		html = html + "</tr>";
+		html = html + "<tr>";
+		html = html + "<td width=15%>详细描述</td><td colspan=3 width=85%>"+this.getLongdescription()+"</td>";
+		html = html + "</tr>";
+		html = html + "</table>";
+		return html;
+	}
+	
 }
